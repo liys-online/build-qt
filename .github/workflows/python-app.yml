@@ -16,7 +16,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ windows-2025, windows-2022, ubuntu-24.04, ubuntu-22.04, macos-26, macos-15, macos-14 ]
+        os: [ windows-2022, ubuntu-22.04, macos-14 ]
         arch: [ arm64-v8a, armeabi-v7a ]
     runs-on: ${{ matrix.os }}
     steps:
