@@ -23,8 +23,8 @@ class Config:
         self.ohos_sdk_downloader = OhosSdkDownloader(os_type=plat['osType'], os_arch=plat['osArch'], support_version=self.ohos_support_version())
         if sys.stdout.isatty():
             self.init_user_config()
-        else:
-            self.save_usr_config(self.get_config())
+        # else:
+        #     self.save_usr_config(self.get_config())
         user_config_path = os.path.join(self.root_path, 'configure.json.user')
         with open(user_config_path, 'r', encoding='utf-8') as f:
             self.user_config = json.load(f)
