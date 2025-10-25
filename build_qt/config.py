@@ -89,7 +89,7 @@ class Config:
                     'type': 'select',
                     'name': 'build_ohos_abi',
                     'message': '请选择OpenHarmony目标架构：',
-                    'choices': ['arm64-v8a', 'armeabi-v7a', 'x86_64'],
+                    'choices': ['arm64-v8a', 'armeabi-v7a', 'x86-64'],
                     'default': self.build_ohos_abi()
                 },
                 {
