@@ -16,7 +16,8 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ windows-2025, windows-2022, ubuntu-24.04, ubuntu-22.04, macos-26, macos-15, macos-14 ]
+        os: [ windows-2022, ubuntu-22.04, macos-14 ]
+        arch: [ arm64-v8a, armeabi-v7a, x86-64 ]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -30,12 +31,29 @@ jobs:
           pip install -r requirements.txt
       - name: build
         run: |
+          echo '{
+            "config": {
+              "working_dir": "${pwd}/work",
+              "perl": "${pwd}/work/perl/bin",
+              "mingw": "${pwd}/work/mingw/bin",
+              "ohos_sdk": "${pwd}/work/ohos-sdk/${ohos_version}",
+              "ohos_version": 15,
+              "build_type": "release",
+              "build_ohos_abi": "${{ matrix.arch }}",
+              "build_qt_tag": "v5.15.12-lts-lgpl",
+              "clone_depth": 1,
+              "jobs": 4,
+              "verbose": false
+            }
+          }' > configure.json.user
           python ./build-qt-ohos.py --init
           python ./build-qt-ohos.py --exe_stage all --with_pack
+          
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: build-output-${{ matrix.os }}
+          name: build-output-${{ matrix.os }}-${{ matrix.arch }}
           path: |
             work/output/*.zip
             work/output/*.tar.gz
