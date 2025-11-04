@@ -46,8 +46,8 @@ jobs:
               "verbose": false
             }
           }' > configure.json.user
-          python ./build-qt-ohos.py --init --qt_mirror https://github.com/qt/qt5.git --patch_mirror https://github.com/liys-online/qt.git
-          python ./build-qt-ohos.py --exe_stage all --with_pack
+          python ./build-qt-ohos.py --init --use_github
+          python ./build-qt-ohos.py --exe_stage all --with_pack --use_github
           
 
       - name: Upload artifact
