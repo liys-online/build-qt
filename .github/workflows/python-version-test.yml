@@ -45,5 +45,5 @@ jobs:
               "verbose": false
             }
           }' > configure.json.user
-          python ./build-qt-ohos.py --init
+          python ./build-qt-ohos.py --init --qt_mirror https://github.com/qt/qt5.git
           python ./build-qt-ohos.py --exe_stage all
