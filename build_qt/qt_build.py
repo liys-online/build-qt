@@ -57,7 +57,7 @@ class QtBuild:
                 else:
                     print('未找到依赖 DLL: {}'.format(dll_dep))
         if self.config.openssl_runtime():
-            openssl_lib = self.config.get_openssl_path()
+            openssl_lib = os.path.join(self.config.get_openssl_path(), 'lib')
             for so in ['libcrypto.so', 'libcrypto.so.1.1', 'libssl.so', 'libssl.so.1.1']:
                 src_dll = os.path.join(openssl_lib, so)
                 if os.path.exists(src_dll):
