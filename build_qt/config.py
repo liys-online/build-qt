@@ -281,11 +281,11 @@ class Config:
         return self.get_config_value('ohos_version')
     
     def qt_repo(self):
-        _qt_repo = self.get_config_value('qt_repo')
-        return _qt_repo.get('gh_url') if self.use_gh else _qt_repo.get('gc_url')
+        _qt_repo = self.get_repos().get('qt_repo')
+        return self.get_repos().get('gh_url') if self.use_gh else _qt_repo.get('gc_url')
 
     def qt_ohos_patch_repo(self):
-        _qt_ohos_patch = self.get_config_value('qt-ohos-patch')
+        _qt_ohos_patch = self.get_repos().get('qt-ohos-patch')
         return _qt_ohos_patch.get('gh_url') if self.use_gh else _qt_ohos_patch.get('gc_url')
     
     def tag(self):
