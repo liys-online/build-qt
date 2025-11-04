@@ -60,11 +60,8 @@ class QtBuild:
     def clean(self):
         if os.path.exists(self.build_dir):
             print('正在删除构建目录: {}'.format(self.build_dir))
-            result = subprocess.run(self.rmdir_cmd, check=True)
-            if result.returncode == 0:
-                print('构建目录已删除')
-            else:
-                print('删除构建目录失败')
+            shutil.rmtree(self.build_dir, ignore_errors=True)
+            print('构建目录已删除')
         else:
             print('构建目录不存在，无需删除')
 
