@@ -95,3 +95,4 @@ class QtBuild:
         print('  构建类型: {}'.format(self.config.build_type()))
         print('  使用的 make 工具: {}'.format(self.make_tools))
         print('  支持的系统: {}'.format(', '.join(self.supported_systems)))
+        print('  配置选项: {}'.format(os.path.join(self.source_dir, 'configure.bat' if self.system == 'Windows' else 'configure') + ' ' + ' '.join(self.config.build_configure_options())))
