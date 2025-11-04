@@ -16,6 +16,10 @@
             "url": "https://gitcode.com/Li-Yaosong/prebuilt/releases/download/1.0.0/mingw64-x86_64-8.1.0-release-posix-seh-rt_v6-rev0.7z",
             "sha256": "412A340FD3767CDBAEC7423F9ADCE01DADF6F6B05B1241D7F39224940D803CF8"
         },
+        "openssl":{
+            "url": "https://gitcode.com/Li-Yaosong/prebuilt/releases/download/1.0.0/openssl_1_1_1u.zip",
+            "sha256": "F2F5FD2773B8DD37F18824BD065D510046E284060BAD443801AD7A2DCCAEB11D"
+        },
         "ohos_sdk":{
             "url": "https://repo.harmonyos.com/sdkmanager/v5/ohos/getSdkList",
             "support_version": "6.0-ohos-single-2"
@@ -28,6 +32,7 @@
         "working_dir": "${pwd}/work",
         "perl": "${pwd}/work/perl/bin",
         "mingw": "${pwd}/work/mingw/bin",
+        "openssl": "${pwd}/work/openssl/${build_ohos_abi}",
         "ohos_sdk": "${pwd}/work/ohos-sdk/${ohos_version}",
         "ohos_version": 15,
         "build_type": "release",
@@ -45,6 +50,7 @@
         "-opengl": "es2",
         "-opengles3": true,
         "-no-dbus": true,
+        "openssl-runtime": true,
         "-disable-rpath": true,
         "-nomake": ["tests", "examples"]
     },

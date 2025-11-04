@@ -30,6 +30,7 @@ class Config:
             self.user_config = json.load(f)
         self.perl_path = self.get_perl_path()
         self.mingw_path = self.get_mingw_path()
+        self.openssl_path = self.get_openssl_path()
         self.ohos_sdk_path = self.get_ohos_sdk_path()
 
 
@@ -117,6 +118,7 @@ class Config:
         need_perl = True
         need_mingw = True
         need_ohos_sdk = True
+        need_openssl = self.openssl_runtime()
         if self.system == 'Windows':
             os.environ['PATH'] = 'C:\\Windows\\System32' + os.pathsep + 'C:\\Windows'
             if self.perl_path and os.path.isdir(self.perl_path):
@@ -162,6 +164,9 @@ class Config:
                 if self.system == 'Darwin':
                     print('请从 App Store 安装最新的 Xcode 以安装编译工具')
                 exit(1)
+        if need_openssl and self.openssl_path and os.path.isdir(self.openssl_path):
+            print('检测到 OpenSSL 路径 {}'.format(self.openssl_path))
+            need_openssl = False
         if self.ohos_sdk_path and os.path.isdir(self.ohos_sdk_path):
             # 检查 native\oh-uni-package.json 是否存在
             package_json_path = os.path.join(self.ohos_sdk_path, 'native', 'oh-uni-package.json')
@@ -198,6 +203,17 @@ class Config:
             if os.path.isdir(mingw_extracted_path):
                 self.mingw_path = os.path.join(mingw_extracted_path, 'bin')
 
+        if need_openssl:
+            openssl_url = self.get_depends().get('openssl').get('url')
+            openssl_checksum = ('sha256', self.get_depends().get('openssl').get('sha256'))
+            download_path = os.path.join(temp_dir, 'openssl_1_1_1u.zip')
+            print('正在下载并安装 OpenSSL...')
+            tar_path = download_component(openssl_url, download_path, openssl_checksum)
+            openssl_extracted_path = os.path.join(self.get_working_dir(), 'openssl')
+            extract_archive(tar_path, openssl_extracted_path)
+            if os.path.isdir(openssl_extracted_path):
+                self.openssl_path = os.path.join(openssl_extracted_path, self.build_ohos_abi())
+
         if need_ohos_sdk:
             api_version = self.ohos_version()
             print('正在下载并安装 OpenHarmony SDK...')
@@ -232,7 +248,16 @@ class Config:
             _mingw_path = _mingw_path.replace('${pwd}', self.root_path)
         _mingw_path = os.path.abspath(os.path.expanduser(_mingw_path))
         return _mingw_path
-    
+
+    def get_openssl_path(self):
+        _openssl_path = self.get_config_value('openssl')
+        if '${pwd}' in _openssl_path:
+            _openssl_path = _openssl_path.replace('${pwd}', self.root_path)
+        if '${build_ohos_abi}' in _openssl_path:
+            _openssl_path = _openssl_path.replace('${build_ohos_abi}', self.build_ohos_abi())
+        _openssl_path = os.path.abspath(os.path.expanduser(_openssl_path))
+        return _openssl_path
+
     def get_ohos_sdk_path(self):
         _ohos_sdk_path = self.get_config_value('ohos_sdk')
         if '${pwd}' in _ohos_sdk_path:
@@ -283,6 +308,9 @@ class Config:
             return jobs
         return os.cpu_count()
 
+    def openssl_runtime(self):
+        return self.config.get('qt-config').get('openssl-runtime', False)
+
     def get_repos(self):
         return self.config.get('repositories', {})
 
@@ -327,6 +355,9 @@ class Config:
             result.append('-opengles3')
         if options['-no-dbus']:
             result.append('-no-dbus')
+        if options['openssl-runtime']:
+            result.append('-openssl-runtime')
+            result.append('OPENSSL_INCDIR={}'.format(os.path.join(self.openssl_path, 'include')))
         if options['-disable-rpath']:
             result.append('-disable-rpath')
         for nomake in options['-nomake']:
