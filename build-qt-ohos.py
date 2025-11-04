@@ -14,8 +14,7 @@ def init_parser():
     build_stages = ['configure', 'build', 'install', 'clean', 'all', "print_build_info"]
     parser.add_argument('--exe_stage', type=str, choices=build_stages, help='执行指定阶段')
     parser.add_argument("--with_pack", action="store_true", help="编译后是否打包编译结果")
-    parser.add_argument('--qt_mirror', type=str, help='指定Qt源码镜像地址')
-    parser.add_argument('--patch_mirror', type=str, help='指定Qt OHOS补丁源码镜像地址')
+    parser.add_argument('--use_github', action='store_true', help='使用GitHub地址')
     _args = parser.parse_args()
     if not any(vars(_args).values()):
         parser.print_help()
@@ -26,19 +25,17 @@ if __name__ == '__main__':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
     sys.stdout.reconfigure(line_buffering=True)
     args = init_parser()
-    config = Config(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'configure.json'))
+    config = Config(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'configure.json'), args.use_github)
     qt_dir = os.path.join(config.get_working_dir(), 'qt5')
 
     repo = QtRepo(qt_dir)
     if args.init:
         try:
             # Qt源码克隆，url: {config.qt_repo()}, 深度为 {depth}, 分支/标签为 {config.tag()}
-            qt_repo_url = args.qt_mirror if args.qt_mirror else config.qt_repo()
-            repo.clone(qt_repo_url, depth=config.clone_depth(), branch=config.tag())
+            repo.clone(config.qt_repo(), depth=config.clone_depth(), branch=config.tag())
 
             # Qt OHOS补丁仓库克隆，url: {config.qt_ohos_patch_repo()}, 深度为 {depth}
-            patch_repo_url = args.patch_mirror if args.patch_mirror else config.qt_ohos_patch_repo()
-            repo.clone_patch_repo(patch_repo_url, depth=0)
+            repo.clone_patch_repo(config.qt_ohos_patch_repo(), depth=0)
 
             # 应用补丁
             repo.apply_patches()

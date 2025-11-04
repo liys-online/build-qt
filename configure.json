@@ -1,23 +1,28 @@
 {
     "repositories": {
         "qt_repo":{
-            "url": "https://gitcode.com/qtforohos/qt5.git"
+            "gc_url": "https://gitcode.com/qtforohos/qt5.git",
+            "gh_url": "https://github.com/qt/qt5.git"
         },
         "qt-ohos-patch": {
-            "url": "https://gitcode.com/openharmony-sig/qt.git"
+            "gc_url": "https://gitcode.com/openharmony-sig/qt.git",
+            "gh_url": "https://github.com/liys-online/qt.git"
         }
     },
     "dependencies": {
         "perl":{
-            "url": "https://gitcode.com/Li-Yaosong/prebuilt/releases/download/1.0.0/perl5.7z",
+            "gc_url": "https://gitcode.com/Li-Yaosong/prebuilt/releases/download/1.0.0/perl5.7z",
+            "gh_url": "https://github.com/liys-online/prebuilt/releases/download/1.0.0/perl5.7z",
             "sha256": "8E70ABE1987AC577C733B5913C0904F66E2E0A3A268B9F8994FADC42F89DACAE"
         },
         "mingw":{
-            "url": "https://gitcode.com/Li-Yaosong/prebuilt/releases/download/1.0.0/mingw64-x86_64-8.1.0-release-posix-seh-rt_v6-rev0.7z",
+            "gc_url": "https://gitcode.com/Li-Yaosong/prebuilt/releases/download/1.0.0/mingw64-x86_64-8.1.0-release-posix-seh-rt_v6-rev0.7z",
+            "gh_url": "https://github.com/liys-online/prebuilt/releases/download/1.0.0/mingw64-x86_64-8.1.0-release-posix-seh-rt_v6-rev0.7z",
             "sha256": "412A340FD3767CDBAEC7423F9ADCE01DADF6F6B05B1241D7F39224940D803CF8"
         },
         "openssl":{
-            "url": "https://gitcode.com/Li-Yaosong/prebuilt/releases/download/1.0.0/openssl_1_1_1u.zip",
+            "gc_url": "https://gitcode.com/Li-Yaosong/prebuilt/releases/download/1.0.0/openssl_1_1_1u.zip",
+            "gh_url": "https://github.com/liys-online/prebuilt/releases/download/1.0.0/openssl_1_1_1u.zip",
             "sha256": "F2F5FD2773B8DD37F18824BD065D510046E284060BAD443801AD7A2DCCAEB11D"
         },
         "ohos_sdk":{

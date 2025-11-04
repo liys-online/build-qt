@@ -12,8 +12,9 @@ from build_qt.ohos_sdk_downloader import OhosSdkDownloader
 class Config:
     config = None
     user_config = None
-    def __init__(self, config_path: str):
+    def __init__(self, config_path: str, use_gh: bool = False):
         self.root_path = os.path.abspath(os.path.dirname(config_path))
+        self.use_gh = use_gh
 
         with open(config_path, 'r', encoding='utf-8') as f:
             self.config = json.load(f)
@@ -182,7 +183,8 @@ class Config:
                     print('警告: 无法解析 {}，文件可能损坏或格式不正确。错误: {}'.format(package_json_path, e))
         temp_dir = os.path.join(self.get_working_dir(), '.temp')
         if need_perl and self.system == 'Windows':
-            perl_url = self.get_depends().get('perl').get('url')
+            depends_perl = self.get_depends().get('perl')
+            perl_url = depends_perl.get('gh_url') if self.use_gh else depends_perl.get('gc_url')
             perl_checksum = ('sha256', self.get_depends().get('perl').get('sha256'))
             download_path = os.path.join(temp_dir, 'perl5.7z')
             print('正在下载并安装 Perl...')
@@ -193,8 +195,9 @@ class Config:
                 self.perl_path = os.path.join(perl_extracted_path, 'bin')
 
         if need_mingw and self.system == 'Windows':
-            mingw_url = self.get_depends().get('mingw').get('url')
-            mingw_checksum = ('sha256', self.get_depends().get('mingw').get('sha256'))
+            depends_mingw = self.get_depends().get('mingw')
+            mingw_url = depends_mingw.get('gh_url') if self.use_gh else depends_mingw.get('gc_url')
+            mingw_checksum = ('sha256', depends_mingw.get('sha256'))
             download_path = os.path.join(temp_dir, 'mingw64-x86_64-8.1.0-release-posix-seh-rt_v6-rev0.7z')
             print('正在下载并安装 MinGW...')
             zip_path = download_component(mingw_url, download_path, mingw_checksum)
@@ -204,7 +207,8 @@ class Config:
                 self.mingw_path = os.path.join(mingw_extracted_path, 'bin')
 
         if need_openssl:
-            openssl_url = self.get_depends().get('openssl').get('url')
+            depends_openssl = self.get_depends().get('openssl')
+            openssl_url = depends_openssl.get('gh_url') if self.use_gh else depends_openssl.get('gc_url')
             openssl_checksum = ('sha256', self.get_depends().get('openssl').get('sha256'))
             download_path = os.path.join(temp_dir, 'openssl_1_1_1u.zip')
             print('正在下载并安装 OpenSSL...')
@@ -277,10 +281,12 @@ class Config:
         return self.get_config_value('ohos_version')
     
     def qt_repo(self):
-        return self.get_repos().get('qt_repo').get('url')
+        _qt_repo = self.get_config_value('qt_repo')
+        return _qt_repo.get('gh_url') if self.use_gh else _qt_repo.get('gc_url')
 
     def qt_ohos_patch_repo(self):
-        return self.get_repos().get('qt-ohos-patch').get('url')
+        _qt_ohos_patch = self.get_config_value('qt-ohos-patch')
+        return _qt_ohos_patch.get('gh_url') if self.use_gh else _qt_ohos_patch.get('gc_url')
     
     def tag(self):
         return self.get_config_value('build_qt_tag')
