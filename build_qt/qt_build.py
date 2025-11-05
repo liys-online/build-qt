@@ -12,8 +12,6 @@ class QtBuild:
         self.build_dir = os.path.join(self.source_dir, 'build', config.build_type())
         self.system = platform.system()
         self.make_tools = 'mingw32-make' if self.system == 'Windows' else 'make'
-        self.rmdir_cmd = ['rmdir', '/S', '/Q'] if self.system == 'Windows' else ['rm', '-rf']
-        self.rmdir_cmd += self.build_dir
         self.supported_systems = ['Windows', 'Linux', 'Darwin']
         if self.system not in self.supported_systems:
             raise EnvironmentError('Unsupported system: {}'.format(self.system))
