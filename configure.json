@@ -10,6 +10,11 @@
         }
     },
     "dependencies": {
+        "git": {
+            "gc_url": "https://gitcode.com/Li-Yaosong/prebuilt/releases/download/1.0.0/Git-2.51.2-windows-64-bit.7z",
+            "gh_url": "https://github.com/liys-online/prebuilt/releases/download/1.0.0/Git-2.51.2-windows-64-bit.7z",
+            "sha256": "C68BF800F0EFE70543B3AB569C31957FDA8AB446674F8A14E055F884E6A54553"
+        },
         "perl":{
             "gc_url": "https://gitcode.com/Li-Yaosong/prebuilt/releases/download/1.0.0/perl5.7z",
             "gh_url": "https://github.com/liys-online/prebuilt/releases/download/1.0.0/perl5.7z",

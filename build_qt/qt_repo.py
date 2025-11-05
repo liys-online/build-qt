@@ -20,6 +20,7 @@ import shutil
 import subprocess
 from git import Repo, GitCommandError
 from build_qt.config import Config
+from build_qt.utils import download_component, extract_archive
 
 class QtRepoError(Exception):
     pass
@@ -38,6 +39,22 @@ class QtRepo:
         self.config = config
         self.repo = None
         self.patch_repo = None
+        self.git_exe = shutil.which('git')
+        if not self.git_exe:
+            print('系统中未找到 git 可执行文件')
+            temp_dir = os.path.join(self.config.get_working_dir(), '.temp')
+            depends_git = config.get_depends().get('git')
+            git_url = depends_git.get('gh_url') if self.config.use_gh else depends_git.get('gc_url')
+            git_checksum = ('sha256', depends_git.get('sha256'))
+            download_path = os.path.join(temp_dir, 'Git-2.51.2-windows-64-bit.7z')
+            print('正在下载并安装 Git...')
+            zip_path = download_component(git_url, download_path, git_checksum)
+            git_extracted_path = os.path.join(self.config.get_working_dir(), 'git')
+            extract_archive(zip_path, git_extracted_path)
+            if os.path.isdir(git_extracted_path):
+                self.git_exe = os.path.join(git_extracted_path, 'bin', 'git')
+            else:
+                raise QtRepoError('Git 解压失败: {}'.format(git_extracted_path))
 
         if os.path.isdir(os.path.join(self.repo_path, '.git')):
             try:
@@ -58,13 +75,9 @@ class QtRepo:
         if os.path.exists(self.repo_path) and os.listdir(self.repo_path):
             print('目录已存在: {}, 跳过克隆'.format(self.repo_path))
             self.repo = Repo(self.repo_path)
-            return 
+            return
 
-        git_exe = shutil.which('git')
-        if not git_exe:
-            raise QtRepoError('系统中未找到 git 可执行文件')
-
-        cmd = [git_exe, 'clone', '--recurse-submodules', '--single-branch', '--shallow-submodules']
+        cmd = [self.git_exe, 'clone', '--recurse-submodules', '--single-branch', '--shallow-submodules']
         if depth and depth > 0:
             cmd += ['--depth', str(depth)]
         if branch:
@@ -89,11 +102,7 @@ class QtRepo:
             self.patch_repo = Repo(patch_path)
             return
 
-        git_exe = shutil.which('git')
-        if not git_exe:
-            raise QtRepoError('系统中未找到 git 可执行文件')
-
-        cmd = [git_exe, 'clone', '--single-branch']
+        cmd = [self.git_exe, 'clone', '--single-branch']
         if depth and depth > 0:
             cmd += ['--depth', str(depth)]
         cmd += [url, patch_path]
@@ -193,17 +202,14 @@ class QtRepo:
     def reset_hard(self):
         try:
             # 1. 重置主仓库
-            git_exe = shutil.which('git')
-            if not git_exe:
-                raise QtRepoError('系统中未找到 git 可执行文件')
-            cmd = [git_exe, '-C', self.repo_path, 'reset', '--hard']
+            cmd = [self.git_exe, '-C', self.repo_path, 'reset', '--hard']
 
             try:
                 subprocess.run(cmd, check=True)
             except subprocess.CalledProcessError as e:
                 raise QtRepoError('重置主仓库 失败: {}'.format(e))
             
-            cmd = [git_exe, '-C', self.repo_path, 'submodule', 'foreach', '--recursive', 'git', 'reset', '--hard']
+            cmd = [self.git_exe, '-C', self.repo_path, 'submodule', 'foreach', '--recursive', 'git', 'reset', '--hard']
             try:
                 subprocess.run(cmd, check=True)
             except subprocess.CalledProcessError as e:
@@ -215,16 +221,13 @@ class QtRepo:
     def clean(self):
         try:
             # 1. 清理主仓库
-            git_exe = shutil.which('git')
-            if not git_exe:
-                raise QtRepoError('系统中未找到 git 可执行文件')
-            cmd = [git_exe, '-C', self.repo_path, 'clean' , '-fdx']
+            cmd = [self.git_exe, '-C', self.repo_path, 'clean' , '-fdx']
             try:
                 subprocess.run(cmd, check=True)
             except subprocess.CalledProcessError as e:
                 raise QtRepoError('清理主仓库 失败: {}'.format(e))
             
-            cmd = [git_exe, '-C', self.repo_path, 'submodule', 'foreach', '--recursive', 'git', 'clean' , '-fdx']
+            cmd = [self.git_exe, '-C', self.repo_path, 'submodule', 'foreach', '--recursive', 'git', 'clean' , '-fdx']
             try:
                 subprocess.run(cmd, check=True)
             except subprocess.CalledProcessError as e:
