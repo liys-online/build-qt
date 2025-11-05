@@ -14,6 +14,7 @@ def init_parser():
     build_stages = ['configure', 'build', 'install', 'clean', 'all', "print_build_info"]
     parser.add_argument('--exe_stage', type=str, choices=build_stages, help='执行指定阶段')
     parser.add_argument("--with_pack", action="store_true", help="编译后是否打包编译结果")
+    parser.add_argument('--use_github', action='store_true', help='使用GitHub地址')
     _args = parser.parse_args()
     if not any(vars(_args).values()):
         parser.print_help()
@@ -22,8 +23,9 @@ def init_parser():
 
 if __name__ == '__main__':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stdout.reconfigure(line_buffering=True)
     args = init_parser()
-    config = Config(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'configure.json'))
+    config = Config(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'configure.json'), args.use_github)
     qt_dir = os.path.join(config.get_working_dir(), 'qt5')
 
     repo = QtRepo(qt_dir)

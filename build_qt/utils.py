@@ -3,7 +3,7 @@ import shutil
 import os
 import hashlib
 import platform
-from typing import Optional, Dict
+from typing import Optional, Dict, Tuple
 from rich.progress import Progress, BarColumn, DownloadColumn, TextColumn, TimeRemainingColumn, TransferSpeedColumn
 
 
@@ -33,7 +33,7 @@ def detect_platform() -> Dict[str, str]:
 
     return {'osType': os_type, 'osArch': os_arch}
 
-def checksum(file_path: str, expected_checksum: tuple[str, str]) -> bool:
+def checksum(file_path: str, expected_checksum: Tuple[str, str]) -> bool:
     """计算文件的校验和，并可选与预期值对比。
 
     Returns True if checksum matches or no expected_checksum provided.
@@ -56,7 +56,7 @@ def checksum(file_path: str, expected_checksum: tuple[str, str]) -> bool:
             raise DownloadError('Checksum mismatch: expected {}, got {}'.format(checksum_value, computed))
     return True
 
-def download_component(url: str, dest_path: str, expected_checksum: Optional[tuple[str, str]] = None, chunk_size: int = 8192) -> str:
+def download_component(url: str, dest_path: str, expected_checksum: Optional[Tuple[str, str]] = None, chunk_size: int = 8192) -> str:
     """下载单个组件到本地路径，并可选校验 sha256 校验和。
 
     Returns saved file path.

@@ -56,15 +56,21 @@ class QtBuild:
                     print('已复制依赖 DLL: {}'.format(dll_dep))
                 else:
                     print('未找到依赖 DLL: {}'.format(dll_dep))
+        if self.config.openssl_runtime():
+            openssl_lib = os.path.join(self.config.get_openssl_path(), 'lib')
+            for so in ['libcrypto.so', 'libcrypto.so.1.1', 'libssl.so', 'libssl.so.1.1']:
+                src_dll = os.path.join(openssl_lib, so)
+                if os.path.exists(src_dll):
+                    shutil.copy(src_dll, os.path.join(self.config.build_prefix(), 'lib'))
+                    print('已复制 OpenSSL 依赖 DLL: {}'.format(so))
+                else:
+                    print('未找到 OpenSSL 依赖 DLL: {}'.format(so))
 
     def clean(self):
         if os.path.exists(self.build_dir):
             print('正在删除构建目录: {}'.format(self.build_dir))
-            result = subprocess.run(self.rmdir_cmd, check=True)
-            if result.returncode == 0:
-                print('构建目录已删除')
-            else:
-                print('删除构建目录失败')
+            shutil.rmtree(self.build_dir, ignore_errors=True)
+            print('构建目录已删除')
         else:
             print('构建目录不存在，无需删除')
 
@@ -92,6 +98,8 @@ class QtBuild:
         print('  Qt 版本: {}'.format(self.config.qt_version()))
         print('  OHOS 版本: {}'.format(self.config.ohos_version()))
         print('  OHOS ABI: {}'.format(self.config.build_ohos_abi()))
+        print('  OpenSSL 支持: {}'.format('是' if self.config.openssl_runtime() else '否'))
         print('  构建类型: {}'.format(self.config.build_type()))
         print('  使用的 make 工具: {}'.format(self.make_tools))
         print('  支持的系统: {}'.format(', '.join(self.supported_systems)))
+        print('  配置选项: {}'.format(os.path.join(self.source_dir, 'configure.bat' if self.system == 'Windows' else 'configure') + ' ' + ' '.join(self.config.build_configure_options())))

@@ -12,8 +12,9 @@ from build_qt.ohos_sdk_downloader import OhosSdkDownloader
 class Config:
     config = None
     user_config = None
-    def __init__(self, config_path: str):
+    def __init__(self, config_path: str, use_gh: bool = False):
         self.root_path = os.path.abspath(os.path.dirname(config_path))
+        self.use_gh = use_gh
 
         with open(config_path, 'r', encoding='utf-8') as f:
             self.config = json.load(f)
@@ -30,6 +31,7 @@ class Config:
             self.user_config = json.load(f)
         self.perl_path = self.get_perl_path()
         self.mingw_path = self.get_mingw_path()
+        self.openssl_path = self.get_openssl_path()
         self.ohos_sdk_path = self.get_ohos_sdk_path()
 
 
@@ -117,6 +119,7 @@ class Config:
         need_perl = True
         need_mingw = True
         need_ohos_sdk = True
+        need_openssl = self.openssl_runtime()
         if self.system == 'Windows':
             os.environ['PATH'] = 'C:\\Windows\\System32' + os.pathsep + 'C:\\Windows'
             if self.perl_path and os.path.isdir(self.perl_path):
@@ -162,6 +165,9 @@ class Config:
                 if self.system == 'Darwin':
                     print('请从 App Store 安装最新的 Xcode 以安装编译工具')
                 exit(1)
+        if need_openssl and self.openssl_path and os.path.isdir(self.openssl_path):
+            print('检测到 OpenSSL 路径 {}'.format(self.openssl_path))
+            need_openssl = False
         if self.ohos_sdk_path and os.path.isdir(self.ohos_sdk_path):
             # 检查 native\oh-uni-package.json 是否存在
             package_json_path = os.path.join(self.ohos_sdk_path, 'native', 'oh-uni-package.json')
@@ -177,7 +183,8 @@ class Config:
                     print('警告: 无法解析 {}，文件可能损坏或格式不正确。错误: {}'.format(package_json_path, e))
         temp_dir = os.path.join(self.get_working_dir(), '.temp')
         if need_perl and self.system == 'Windows':
-            perl_url = self.get_depends().get('perl').get('url')
+            depends_perl = self.get_depends().get('perl')
+            perl_url = depends_perl.get('gh_url') if self.use_gh else depends_perl.get('gc_url')
             perl_checksum = ('sha256', self.get_depends().get('perl').get('sha256'))
             download_path = os.path.join(temp_dir, 'perl5.7z')
             print('正在下载并安装 Perl...')
@@ -188,8 +195,9 @@ class Config:
                 self.perl_path = os.path.join(perl_extracted_path, 'bin')
 
         if need_mingw and self.system == 'Windows':
-            mingw_url = self.get_depends().get('mingw').get('url')
-            mingw_checksum = ('sha256', self.get_depends().get('mingw').get('sha256'))
+            depends_mingw = self.get_depends().get('mingw')
+            mingw_url = depends_mingw.get('gh_url') if self.use_gh else depends_mingw.get('gc_url')
+            mingw_checksum = ('sha256', depends_mingw.get('sha256'))
             download_path = os.path.join(temp_dir, 'mingw64-x86_64-8.1.0-release-posix-seh-rt_v6-rev0.7z')
             print('正在下载并安装 MinGW...')
             zip_path = download_component(mingw_url, download_path, mingw_checksum)
@@ -197,6 +205,18 @@ class Config:
             extract_archive(zip_path, mingw_extracted_path)
             if os.path.isdir(mingw_extracted_path):
                 self.mingw_path = os.path.join(mingw_extracted_path, 'bin')
+
+        if need_openssl:
+            depends_openssl = self.get_depends().get('openssl')
+            openssl_url = depends_openssl.get('gh_url') if self.use_gh else depends_openssl.get('gc_url')
+            openssl_checksum = ('sha256', self.get_depends().get('openssl').get('sha256'))
+            download_path = os.path.join(temp_dir, 'openssl_1_1_1u.zip')
+            print('正在下载并安装 OpenSSL...')
+            tar_path = download_component(openssl_url, download_path, openssl_checksum)
+            openssl_extracted_path = os.path.join(self.get_working_dir(), 'openssl')
+            extract_archive(tar_path, openssl_extracted_path)
+            if os.path.isdir(openssl_extracted_path):
+                self.openssl_path = os.path.join(openssl_extracted_path, self.build_ohos_abi())
 
         if need_ohos_sdk:
             api_version = self.ohos_version()
@@ -232,7 +252,16 @@ class Config:
             _mingw_path = _mingw_path.replace('${pwd}', self.root_path)
         _mingw_path = os.path.abspath(os.path.expanduser(_mingw_path))
         return _mingw_path
-    
+
+    def get_openssl_path(self):
+        _openssl_path = self.get_config_value('openssl')
+        if '${pwd}' in _openssl_path:
+            _openssl_path = _openssl_path.replace('${pwd}', self.root_path)
+        if '${build_ohos_abi}' in _openssl_path:
+            _openssl_path = _openssl_path.replace('${build_ohos_abi}', self.build_ohos_abi())
+        _openssl_path = os.path.abspath(os.path.expanduser(_openssl_path))
+        return _openssl_path
+
     def get_ohos_sdk_path(self):
         _ohos_sdk_path = self.get_config_value('ohos_sdk')
         if '${pwd}' in _ohos_sdk_path:
@@ -252,10 +281,12 @@ class Config:
         return self.get_config_value('ohos_version')
     
     def qt_repo(self):
-        return self.get_repos().get('qt_repo').get('url')
+        _qt_repo = self.get_repos().get('qt_repo')
+        return _qt_repo.get('gh_url') if self.use_gh else _qt_repo.get('gc_url')
 
     def qt_ohos_patch_repo(self):
-        return self.get_repos().get('qt-ohos-patch').get('url')
+        _qt_ohos_patch = self.get_repos().get('qt-ohos-patch')
+        return _qt_ohos_patch.get('gh_url') if self.use_gh else _qt_ohos_patch.get('gc_url')
     
     def tag(self):
         return self.get_config_value('build_qt_tag')
@@ -282,6 +313,9 @@ class Config:
         if jobs <= os.cpu_count():
             return jobs
         return os.cpu_count()
+
+    def openssl_runtime(self):
+        return self.config.get('qt-config').get('openssl-runtime', False)
 
     def get_repos(self):
         return self.config.get('repositories', {})
@@ -327,6 +361,9 @@ class Config:
             result.append('-opengles3')
         if options['-no-dbus']:
             result.append('-no-dbus')
+        if options['openssl-runtime']:
+            result.append('-openssl-runtime')
+            result.append('OPENSSL_INCDIR={}'.format(os.path.join(self.openssl_path, 'include')))
         if options['-disable-rpath']:
             result.append('-disable-rpath')
         for nomake in options['-nomake']:
