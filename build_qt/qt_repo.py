@@ -96,6 +96,7 @@ class QtRepo:
     def clone_patch_repo(self, depth: int = 0) -> None:
         """克隆补丁仓库，位于主仓库同级目录的 repo_path + '_patch' 目录下。"""
         url = self.config.qt_ohos_patch_repo()
+        branch = self.config.ohqt_tag()
         patch_path = self.repo_path + '_patch'
         if os.path.exists(patch_path) and os.listdir(patch_path):
             print('目录已存在: {}, 跳过克隆'.format(patch_path))
@@ -105,6 +106,8 @@ class QtRepo:
         cmd = [self.git_exe, 'clone', '--single-branch']
         if depth and depth > 0:
             cmd += ['--depth', str(depth)]
+        if branch:
+            cmd += ['--branch', branch]
         cmd += [url, patch_path]
 
         try:

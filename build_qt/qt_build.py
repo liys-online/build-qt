@@ -4,6 +4,7 @@ import subprocess
 from .utils import create_archive
 from .config import Config
 import shutil
+import datetime
 
 class QtBuild:
     def __init__(self, source_dir: str, config: Config):
@@ -78,12 +79,16 @@ class QtBuild:
         prefix = self.config.build_prefix()
         if not prefix:
             raise ValueError('安装路径未设置，无法打包')
+            
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M")
+    
         suffix = 'zip' if self.system == 'Windows' else 'tar.gz'
-        package_name = 'Qt{}_OHOS{}_{}_{}.{}'.format(
+        package_name = 'Qt{}_OHOS{}_{}_{}_{}.{}'.format(
             self.config.qt_version(),
             self.config.ohos_version(),
             self.config.build_ohos_abi(),
             self.system.lower(),
+            timestamp,
             suffix
         )
         package_name = os.path.join(self.config.get_output_path(), package_name)
