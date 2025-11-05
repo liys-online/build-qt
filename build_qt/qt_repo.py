@@ -19,6 +19,7 @@ import os
 import shutil
 import subprocess
 from git import Repo, GitCommandError
+from build_qt.config import Config
 
 class QtRepoError(Exception):
     pass
@@ -31,9 +32,10 @@ class QtRepo:
     - repo_path: 本地目标目录
     - remote_name: 远端名，默认 origin
     """
-    def __init__(self, repo_path: str, remote_name: str = 'origin'):
+    def __init__(self, repo_path: str, config: Config, remote_name: str = 'origin'):
         self.repo_path = os.path.abspath(repo_path)
         self.remote_name = remote_name
+        self.config = config
         self.repo = None
         self.patch_repo = None
 
@@ -44,12 +46,15 @@ class QtRepo:
                 raise QtRepoError('打开仓库失败: {}'.format(e))
 
     # ---------- 克隆相关 ----------
-    def clone(self, url: str, depth: int = 0, branch: Optional[str] = None) -> None:
+    def clone(self) -> None:
         """克隆仓库。
 
         depth: 0 表示完整克隆；>0 表示使用 --depth
         branch: 若指定，传递给 git clone 的 --branch
         """
+        url = self.config.qt_repo()
+        depth = self.config.clone_depth()
+        branch = self.config.tag()
         if os.path.exists(self.repo_path) and os.listdir(self.repo_path):
             print('目录已存在: {}, 跳过克隆'.format(self.repo_path))
             self.repo = Repo(self.repo_path)
@@ -75,8 +80,9 @@ class QtRepo:
             raise QtRepoError('git clone 失败: {}'.format(e))
         print('Local branches: {}'.format(self.list_branches(local=True)))
 
-    def clone_patch_repo(self, url: str, depth: int = 0) -> None:
+    def clone_patch_repo(self, depth: int = 0) -> None:
         """克隆补丁仓库，位于主仓库同级目录的 repo_path + '_patch' 目录下。"""
+        url = self.config.qt_ohos_patch_repo()
         patch_path = self.repo_path + '_patch'
         if os.path.exists(patch_path) and os.listdir(patch_path):
             print('目录已存在: {}, 跳过克隆'.format(patch_path))
