@@ -121,7 +121,9 @@ class Config:
         need_ohos_sdk = True
         need_openssl = self.openssl_runtime()
         if self.system == 'Windows':
-            os.environ['PATH'] = 'C:\\Windows\\System32' + os.pathsep + 'C:\\Windows'
+            os.environ['PATH'] = ('C:\\Windows\\System32'
+                                  + os.pathsep + 'C:\\Windows'
+                                  + os.pathsep + os.path.dirname(sys.executable))
             if self.perl_path and os.path.isdir(self.perl_path):
                 cmd = [os.path.join(self.perl_path, 'perl'), '-e', 'print sprintf("%vd",$^V);']
                 try:
