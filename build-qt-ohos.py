@@ -28,14 +28,14 @@ if __name__ == '__main__':
     config = Config(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'configure.json'), args.use_github)
     qt_dir = os.path.join(config.get_working_dir(), 'qt5')
 
-    repo = QtRepo(qt_dir)
+    repo = QtRepo(qt_dir, config)
     if args.init:
         try:
-            # Qt源码克隆，url: {config.qt_repo()}, 深度为 {depth}, 分支/标签为 {config.tag()}
-            repo.clone(config.qt_repo(), depth=config.clone_depth(), branch=config.tag())
+            # Qt源码克隆
+            repo.clone()
 
-            # Qt OHOS补丁仓库克隆，url: {config.qt_ohos_patch_repo()}, 深度为 {depth}
-            repo.clone_patch_repo(config.qt_ohos_patch_repo(), depth=0)
+            # Qt OHOS补丁仓库克隆
+            repo.clone_patch_repo()
 
             # 应用补丁
             repo.apply_patches()

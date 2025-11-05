@@ -10,10 +10,15 @@
         }
     },
     "dependencies": {
+        "git": {
+            "gc_url": "https://gitcode.com/Li-Yaosong/prebuilt/releases/download/1.0.0/Git-2.51.2-windows-64-bit.7z",
+            "gh_url": "https://github.com/liys-online/prebuilt/releases/download/1.0.0/Git-2.51.2-windows-64-bit.7z",
+            "sha256": "C68BF800F0EFE70543B3AB569C31957FDA8AB446674F8A14E055F884E6A54553"
+        },
         "perl":{
             "gc_url": "https://gitcode.com/Li-Yaosong/prebuilt/releases/download/1.0.0/perl5.7z",
             "gh_url": "https://github.com/liys-online/prebuilt/releases/download/1.0.0/perl5.7z",
-            "sha256": "8E70ABE1987AC577C733B5913C0904F66E2E0A3A268B9F8994FADC42F89DACAE"
+            "sha256": "B783A9D8872E54BD545E16F2B384BA4EB1ECE8594CB444F70D38C8DF572E69DA"
         },
         "mingw":{
             "gc_url": "https://gitcode.com/Li-Yaosong/prebuilt/releases/download/1.0.0/mingw64-x86_64-8.1.0-release-posix-seh-rt_v6-rev0.7z",
