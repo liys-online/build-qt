@@ -293,6 +293,9 @@ class Config:
     def tag(self):
         return self.get_config_value('build_qt_tag')
 
+    def ohqt_tag(self):
+        return self.get_config_value('build_ohqt_tag')
+
     def qt_version(self):
         return self.tag().replace('v', '').replace('-lts-lgpl', '')
 

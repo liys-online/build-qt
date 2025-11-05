@@ -41,6 +41,7 @@ jobs:
               "build_type": "release",
               "build_ohos_abi": "${{ matrix.arch }}",
               "build_qt_tag": "v5.15.12-lts-lgpl",
+              "build_ohqt_tag": "master",
               "clone_depth": 1,
               "jobs": 4,
               "verbose": false
