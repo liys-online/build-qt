@@ -53,21 +53,17 @@ class Config:
                     'type': 'path',
                     'name': 'perl',
                     'message': '请配置perl路径（默认则自动下载）：',
-                    'default': self.get_perl_path(),
+                    'default': lambda the_answers: os.path.join(the_answers['working_dir'], 'perl')
+                                if 'working_dir' in the_answers else self.get_perl_path(),
                     'when': platform.system() != 'Windows'
                 },
                 {
                     'type': 'path',
                     'name': 'mingw',
                     'message': '请配置mingw路径（默认则自动下载）：',
-                    'default': self.get_mingw_path(),
+                    'default': lambda the_answers: os.path.join(the_answers['working_dir'], 'mingw')
+                                if 'working_dir' in the_answers else self.get_mingw_path(),
                     'when': platform.system() != 'Windows'
-                },
-                {
-                    'type': 'path',
-                    'name': 'ohos_sdk',
-                    'message': '请配置OpenHarmony SDK路径（默认则自动下载）：',
-                    'default': self.get_ohos_sdk_path()
                 },
                 {
                     'type': 'select',
@@ -75,6 +71,13 @@ class Config:
                     'message': '请选择OpenHarmony SDK版本：',
                     'choices': self.ohos_sdk_downloader.get_supported_versions(),
                     'default': str(self.ohos_version())
+                },
+                {
+                    'type': 'path',
+                    'name': 'ohos_sdk',
+                    'message': '请配置OpenHarmony SDK路径（默认则自动下载）：',
+                    'default': lambda the_answers: os.path.join(the_answers['working_dir'], 'ohos_sdk', the_answers['ohos_version'])
+                                if 'working_dir' in the_answers and 'ohos_version' in the_answers else self.get_ohos_sdk_path()
                 },
                 {
                     'type': 'select',
