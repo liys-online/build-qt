@@ -21,7 +21,10 @@ class Config:
         self.system = platform.system()
         self.make_tools = 'mingw32-make' if self.system == 'Windows' else 'make'
         plat = detect_platform()
-        self.ohos_sdk_downloader = OhosSdkDownloader(os_type=plat['osType'], os_arch=plat['osArch'], support_version=self.ohos_support_version())
+        self.ohos_sdk_downloader = OhosSdkDownloader(url=self.ohos_sdk_list_url(),
+                                                     os_type=plat['osType'],
+                                                     os_arch=plat['osArch'],
+                                                     support_version=self.ohos_support_version())
         if sys.stdout.isatty():
             self.init_user_config()
         # else:
@@ -273,6 +276,8 @@ class Config:
         _ohos_sdk_path = os.path.abspath(os.path.expanduser(_ohos_sdk_path))
         return _ohos_sdk_path
 
+    def ohos_sdk_list_url(self):
+        return self.get_depends().get('ohos_sdk').get('url')
     def ohos_support_version(self):
         return self.get_depends().get('ohos_sdk').get('support_version')
 

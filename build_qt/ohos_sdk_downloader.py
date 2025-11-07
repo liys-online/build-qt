@@ -12,20 +12,14 @@ OpenHarmony SDK 下载器
 from __future__ import annotations
 
 import os
+import requests
 from dataclasses import dataclass
 from typing import Dict, Iterable, List, Optional
 
 from .utils import download_component
 
-import requests
-
-
-SDK_LIST_URL = 'https://repo.harmonyos.com/sdkmanager/v5/ohos/getSdkList'
-
-
 class DownloadError(Exception):
     pass
-
 
 @dataclass
 class ComponentArchive(object):
@@ -46,7 +40,8 @@ class OhosSdkDownloader:
         downloader.download_component(links['native'], 'C:/tmp/native.zip', expected_checksum=None)
     """
 
-    def __init__(self, os_type: str, os_arch: str, support_version: str, timeout: int = 30):
+    def __init__(self, url: str, os_type: str, os_arch: str, support_version: str, timeout: int = 30):
+        self.url = url
         self.session = requests.Session()
         self.timeout = timeout
         self.os_type = os_type
@@ -68,7 +63,7 @@ class OhosSdkDownloader:
         """
         body = self.build_request_body()
         try:
-            resp = self.session.post(SDK_LIST_URL, json=body, timeout=self.timeout)
+            resp = self.session.post(self.url, json=body, timeout=self.timeout)
             resp.raise_for_status()
             data = resp.json()
             if not isinstance(data, list):
