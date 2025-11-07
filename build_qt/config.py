@@ -3,7 +3,7 @@ import json
 import questionary
 import os
 import sys
-from typing import Dict
+from typing import Dict, Tuple
 import platform
 import subprocess
 from build_qt.utils import detect_platform, download_component, extract_archive
@@ -279,8 +279,10 @@ class Config:
         _ohos_sdk_path = os.path.abspath(os.path.expanduser(_ohos_sdk_path))
         return _ohos_sdk_path
 
-    def ohos_sdk_list_url(self):
-        return self.get_depends().get('ohos_sdk').get('url')
+    def ohos_sdk_list_url(self) -> Tuple[str, str]:
+        back_url = 'gh_url' if self.use_gh else 'gc_url'
+        return self.get_depends().get('ohos_sdk').get('url'), self.get_depends().get('ohos_sdk').get(back_url)
+
     def ohos_support_version(self):
         return self.get_depends().get('ohos_sdk').get('support_version')
 

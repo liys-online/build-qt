@@ -14,7 +14,7 @@ from __future__ import annotations
 import os
 import requests
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Tuple
 
 from .utils import download_component
 
@@ -23,7 +23,7 @@ class DownloadError(Exception):
 
 @dataclass
 class ComponentArchive(object):
-    def __init__(self, url: str, size: int = None, checksum: str = None, os_arch: str = None):
+    def __init__(self, url: Tuple[str, str], size: int = None, checksum: str = None, os_arch: str = None):
         self.url = url
         self.size = size
         self.checksum = checksum
@@ -40,7 +40,7 @@ class OhosSdkDownloader:
         downloader.download_component(links['native'], 'C:/tmp/native.zip', expected_checksum=None)
     """
 
-    def __init__(self, url: str, os_type: str, os_arch: str, support_version: str, timeout: int = 30):
+    def __init__(self, url: Tuple[str, str], os_type: str, os_arch: str, support_version: str, timeout: int = 30):
         self.url = url
         self.session = requests.Session()
         self.timeout = timeout
@@ -63,7 +63,7 @@ class OhosSdkDownloader:
         """
         body = self.build_request_body()
         try:
-            resp = self.session.post(self.url, json=body, timeout=self.timeout)
+            resp = self.session.post(self.url[0], json=body, timeout=self.timeout)
             resp.raise_for_status()
             data = resp.json()
             if not isinstance(data, list):
@@ -74,6 +74,25 @@ class OhosSdkDownloader:
         except ValueError as e:
             raise DownloadError('Failed to parse JSON: {}'.format(e))
 
+    def get_backup_sdk_list(self) -> List[Dict]:
+        """从备用 URL 获取 SDK 列表，返回 JSON 列表结构。
+
+        Raises:
+            DownloadError: 网络或解析错误时抛出
+        """
+        body = self.build_request_body()
+        try:
+            resp = self.session.get(self.url[1] + '-{}'.format(self.os_type), timeout=self.timeout)
+            resp.raise_for_status()
+            data = resp.json()
+            if not isinstance(data, list):
+                raise DownloadError('Unexpected response format: expected a list')
+            return data
+        except requests.RequestException as e:
+            raise DownloadError('Failed to fetch backup SDK list: {}'.format(e))
+        except ValueError as e:
+            raise DownloadError('Failed to parse JSON from backup: {}'.format(e))
+
     def get_supported_versions(self) -> List[str]:
         """获取支持的 apiVersion 列表。
 
@@ -81,8 +100,13 @@ class OhosSdkDownloader:
             DownloadError: 网络或解析错误时抛出
         """
         sdk_list = self.get_sdk_list()
+        backup_sdk_list = self.get_backup_sdk_list()
         versions = set()
         for entry in sdk_list:
+            sv = entry.get('apiVersion')
+            if sv:
+                versions.add(sv)
+        for entry in backup_sdk_list:
             sv = entry.get('apiVersion')
             if sv:
                 versions.add(sv)
@@ -126,8 +150,11 @@ class OhosSdkDownloader:
         Returns 保存的文件路径
         """
         sdk_list = self.get_sdk_list()
+        backup_sdk_list = self.get_backup_sdk_list()
         # filter by apiVersion then by path
         matches = [e for e in sdk_list if str(e.get('apiVersion')) == str(api_version) and e.get('path') == component_name]
+        if not matches:
+            matches = [e for e in backup_sdk_list if str(e.get('apiVersion')) == str(api_version) and e.get('path') == component_name]
         if not matches:
             raise DownloadError('No matching component found for apiVersion={}, component={}'.format(api_version, component_name))
         entry = matches[0]

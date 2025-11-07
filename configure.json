@@ -32,6 +32,8 @@
         },
         "ohos_sdk":{
             "url": "https://repo.harmonyos.com/sdkmanager/v5/ohos/getSdkList",
+            "gc_url": "https://gitcode.com/Li-Yaosong/prebuilt/releases/download/1.0.0/getSdkList",
+            "gh_url": "https://github.com/liys-online/prebuilt/releases/download/1.0.0/getSdkList",
             "support_version": "6.0-ohos-single-2"
         }
     },
