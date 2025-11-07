@@ -37,7 +37,7 @@ jobs:
               "perl": "${pwd}/work/perl/bin",
               "mingw": "${pwd}/work/mingw/bin",
               "ohos_sdk": "${pwd}/work/ohos-sdk/${ohos_version}",
-              "ohos_version": 15,
+              "ohos_version": 17,
               "build_type": "release",
               "build_ohos_abi": "${{ matrix.arch }}",
               "build_qt_tag": "v5.15.12-lts-lgpl",
