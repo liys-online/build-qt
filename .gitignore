@@ -3,6 +3,7 @@
 work/
 .idea/
 .vscode/
+__pycache__/
 build_qt/__pycache__/
 build_qt/ziptools/__pycache__/
 configure.json.user

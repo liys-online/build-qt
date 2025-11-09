@@ -87,6 +87,7 @@ python build-qt-ohos.py --exe_stage all --with_pack
 - `--init`：初始化 Qt 仓库并应用补丁
 - `--env_check`：检查并准备开发环境
 - `--reset_repo`：重置 Qt 源码与所有子模块（git reset --hard/clean），并重新应用补丁
+- `--update_commit_hash`：更新 commit_hash 文件，获取 Build 仓库的最新提交 hash
 - `--exe_stage {configure|build|install|clean|all|print_build_info}`：执行指定阶段
   - `configure`：调用 Qt 的 `configure(.bat)` 生成构建配置
   - `build`：调用 `make -jN` 或 `mingw32-make -jN`
@@ -95,9 +96,13 @@ python build-qt-ohos.py --exe_stage all --with_pack
   - `all`：依次执行 configure/build/install
   - `print_build_info`：打印当前构建参数与路径
 - `--with_pack`：在安装完成后打包产物
+- `--use_github`：使用 GitHub 地址（默认使用 GitCode 地址）
 
 常用组合示例：
 ```cmd
+:: 更新 commit_hash 文件（获取 Build 仓库最新提交）
+python build-qt-ohos.py --update_commit_hash --use_github
+
 :: 配置
 python build-qt-ohos.py --exe_stage configure
 

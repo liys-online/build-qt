@@ -5,12 +5,14 @@ import argparse
 from build_qt.qt_repo import QtRepo, QtRepoError
 from build_qt.qt_build import QtBuild
 from build_qt.config import Config
+from build_qt.commit_hash_fetcher import CommitHashFetcher, CommitHashFetcherError
 
 def init_parser():
     parser = argparse.ArgumentParser(description='Build Qt for OHOS')
     parser.add_argument('--init', action='store_true', help='初始化Qt仓库,并应用补丁')
     parser.add_argument('--env_check', action='store_true', help='检查开发环境')
     parser.add_argument('--reset_repo', action='store_true', help='重置Qt仓库,并重新应用补丁')
+    parser.add_argument('--update_commit_hash', action='store_true', help='更新commit_hash文件，获取Build仓库的最新提交hash')
     build_stages = ['configure', 'build', 'install', 'clean', 'all', "print_build_info"]
     parser.add_argument('--exe_stage', type=str, choices=build_stages, help='执行指定阶段')
     parser.add_argument("--with_pack", action="store_true", help="编译后是否打包编译结果")
@@ -27,6 +29,33 @@ if __name__ == '__main__':
     args = init_parser()
     config = Config(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'configure.json'), args.use_github)
     qt_dir = os.path.join(config.get_working_dir(), 'qt5')
+
+    # Handle commit hash update
+    if args.update_commit_hash:
+        try:
+            commit_hash_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'commit_hash')
+            build_repo_url = config.build_repo()
+            print('正在从 {} 获取最新提交hash...'.format(build_repo_url))
+            
+            fetcher = CommitHashFetcher(build_repo_url, commit_hash_file)
+            old_hash = fetcher.read_commit_hash_file()
+            new_hash = fetcher.update_commit_hash_file()
+            
+            if old_hash:
+                print('旧的提交hash: {}'.format(old_hash))
+            print('新的提交hash: {}'.format(new_hash))
+            
+            if old_hash != new_hash:
+                print('commit_hash 文件已更新')
+            else:
+                print('commit_hash 未变化')
+        except CommitHashFetcherError as e:
+            print('CommitHashFetcherError:', e)
+            exit(1)
+        except Exception as e:
+            print('Error:', e)
+            exit(1)
+        exit()
 
     repo = QtRepo(qt_dir, config)
     if args.init:

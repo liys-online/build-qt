@@ -7,6 +7,10 @@
         "qt-ohos-patch": {
             "gc_url": "https://gitcode.com/openharmony-sig/qt.git",
             "gh_url": "https://github.com/liys-online/qt.git"
+        },
+        "build_repo": {
+            "gc_url": "https://gitcode.com/qtforohos/Build.git",
+            "gh_url": "https://github.com/liys-online/build-qt.git"
         }
     },
     "dependencies": {

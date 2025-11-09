@@ -300,6 +300,10 @@ class Config:
         _qt_ohos_patch = self.get_repos().get('qt-ohos-patch')
         return _qt_ohos_patch.get('gh_url') if self.use_gh else _qt_ohos_patch.get('gc_url')
     
+    def build_repo(self):
+        _build_repo = self.get_repos().get('build_repo')
+        return _build_repo.get('gh_url') if self.use_gh else _build_repo.get('gc_url')
+    
     def tag(self):
         return self.get_config_value('build_qt_tag')
 
