@@ -18,7 +18,7 @@ on:
         required: true
         default: '17'
         type: choice
-        options: [15,16,17,18,19,20]
+        options: ['15', '16', '17', '18', '19', '20']
 
       build_type:
         description: '选择构建类型'
