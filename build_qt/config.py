@@ -390,6 +390,9 @@ class Config:
         result += ['-{}'.format(self.build_type())]
         result += ['-device-option', 'OHOS_ARCH={}'.format(self.build_ohos_abi())]
         result += ['-make-tool', '{} -j{}'.format(self.make_tools, self.build_jobs())]
+        features = self.get_config_value('features')
+        for feature in features:
+            result += ['-feature-{}'.format(feature)]
         if self.get_config_value('verbose'):
             result += ['-verbose']
         return result
