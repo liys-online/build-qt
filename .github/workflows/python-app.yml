@@ -4,10 +4,29 @@
 name: Build Qt OHOS
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      qt_version:
+        description: '选择Qt版本'
+        required: true
+        default: 5.15.12
+        type: choice
+        options: [5.15.12]
+
+      ohos_version:
+        description: '选择OpenHarmony版本'
+        required: true
+        default: '17'
+        type: choice
+        options: [15,16,17,18,19,20]
+
+      build_type:
+        description: '选择构建类型'
+        required: true
+        default: release
+        type: choice
+        options: [debug, release]
+
 
 permissions:
   contents: read
@@ -37,10 +56,10 @@ jobs:
               "perl": "${pwd}/work/perl/bin",
               "mingw": "${pwd}/work/mingw/bin",
               "ohos_sdk": "${pwd}/work/ohos-sdk/${ohos_version}",
-              "ohos_version": 17,
-              "build_type": "release",
+              "ohos_version": ${{ inputs.ohos_version }},
+              "build_type": "${{ inputs.build_type }}",
               "build_ohos_abi": "${{ matrix.arch }}",
-              "build_qt_tag": "v5.15.12-lts-lgpl",
+              "build_qt_tag": "v${{ inputs.qt_version }}-lts-lgpl",
               "build_ohqt_tag": "master",
               "clone_depth": 1,
               "jobs": 4,
@@ -54,7 +73,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: build-output-${{ matrix.os }}-${{ matrix.arch }}
+          name: ${{ matrix.os }}-output-qt${{ inputs.qt_version }}-${{ matrix.arch }}-${{ inputs.ohos_version }}-${{ inputs.build_type }}
           path: |
             work/output/*.zip
             work/output/*.tar.gz
