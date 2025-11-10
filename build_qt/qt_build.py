@@ -49,14 +49,14 @@ class QtBuild:
         if self.system == 'Windows':
             dll_deps = ['libstdc++-6.dll', 'libgcc_s_seh-1.dll', 'libwinpthread-1.dll']
             for dll_dep in dll_deps:
-                src_dll = os.path.join(self.config.get_mingw_path(), dll_dep)
+                src_dll = os.path.join(self.config.get_build_tool_path('mingw'), dll_dep)
                 if os.path.exists(src_dll):
                     shutil.copy(src_dll, os.path.join(self.config.build_prefix(), 'bin'))
                     print('已复制依赖 DLL: {}'.format(dll_dep))
                 else:
                     print('未找到依赖 DLL: {}'.format(dll_dep))
         if self.config.openssl_runtime():
-            openssl_lib = os.path.join(self.config.get_openssl_path(), 'lib')
+            openssl_lib = os.path.join(self.config.get_path('openssl'), 'lib')
             for so in ['libcrypto.so', 'libcrypto.so.1.1', 'libssl.so', 'libssl.so.1.1']:
                 src_dll = os.path.join(openssl_lib, so)
                 if os.path.exists(src_dll):
