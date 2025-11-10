@@ -247,19 +247,22 @@ class Config:
     def get_output_path(self):
         return os.path.join(self.get_working_dir(), 'output')
 
+    def get_build_tool_path(self, tool_name: str):
+        tool_path = self.get_config_value(tool_name)
+        if '${pwd}' in tool_path:
+            tool_path = tool_path.replace('${pwd}', self.root_path)
+        tool_path = os.path.abspath(os.path.expanduser(tool_path))
+        # 判断是否有bin目录
+        bin_dir = os.path.join(tool_path, 'bin')
+        if os.path.isdir(bin_dir):
+            return bin_dir
+        return tool_path
+
     def get_perl_path(self):
-        _perl_path = self.get_config_value('perl')
-        if '${pwd}' in _perl_path:
-            _perl_path = _perl_path.replace('${pwd}', self.root_path)
-        _perl_path = os.path.abspath(os.path.expanduser(_perl_path))
-        return _perl_path
+        return self.get_build_tool_path('perl')
 
     def get_mingw_path(self):
-        _mingw_path = self.get_config_value('mingw')
-        if '${pwd}' in _mingw_path:
-            _mingw_path = _mingw_path.replace('${pwd}', self.root_path)
-        _mingw_path = os.path.abspath(os.path.expanduser(_mingw_path))
-        return _mingw_path
+        return self.get_build_tool_path('mingw')
 
     def get_openssl_path(self):
         _openssl_path = self.get_config_value('openssl')
