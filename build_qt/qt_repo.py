@@ -100,7 +100,7 @@ class QtRepo:
         else:
             raise QtRepoError('git clone 补丁仓库失败: {}'.format(url))
 
-    def apply_patches(self, tag_dir: Optional[str] = None) -> None:
+    def apply_patches(self) -> None:
         """应用补丁仓库中的补丁文件到主仓库。
 
         patch_dir: 补丁文件所在目录，默认使用补丁仓库根目录
@@ -113,6 +113,7 @@ class QtRepo:
             raise QtRepoError('补丁仓库未初始化')
 
         self.reset_hard()
+        tag_dir = self.config.tag()
         if tag_dir:
             tag_dir = tag_dir.replace('-lts-lgpl', '')
         else:
