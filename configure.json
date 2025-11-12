@@ -80,6 +80,18 @@
             "qtwebview"
         ]
     },
+    "v5.15.17-lts-lgpl": {
+        "-skip": [
+            "qtpim",
+            "qtvirtualkeyboard",
+            "qtwebengine",
+            "qtsystems",
+            "qtlocation",
+            "qtgamepad",
+            "qtscript",
+            "qtwebview"
+        ]
+    },
     "v6.5.6-lts-lgpl": {
         "-skip": [
             "qtpim", 
