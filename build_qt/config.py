@@ -255,7 +255,7 @@ class Config:
         for key in config_keys:
             pattern = '${{{}}}'.format(key)
             if pattern in old_str:
-                old_str = old_str.replace(pattern, self.get_config_value(key))
+                old_str = old_str.replace(pattern, str(self.get_config_value(key)))
         return old_str
 
     def get_path(self, tool_name: str):
