@@ -444,15 +444,7 @@ class Config:
         if options['confirm-license']:
             result.append('-confirm-license')
         
-        # 主机平台
-        host_platform = 'win32-g++'
-        if platform.system() == 'Linux':
-            host_platform = 'linux-g++'
-        elif platform.system() == 'Darwin':
-            host_platform = 'macx-clang'
-        result += ['-platform', host_platform]
-        
-        # Qt6交叉编译需要-xplatform和OHOS SDK相关配置
+        # Qt6交叉编译不需要-platform参数，只需要-xplatform和OHOS SDK相关配置
         result += ['-xplatform', 'ohos-clang']
         result += ['-openharmony-sdk', self.ohos_sdk_path]
         result += ['-openharmony-abis', self.build_ohos_abi()]

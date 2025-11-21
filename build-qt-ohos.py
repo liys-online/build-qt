@@ -3,7 +3,7 @@ import sys
 import io
 import argparse
 from build_qt.qt_repo import QtRepo, QtRepoError
-from build_qt.qt_build import QtBuild
+from build_qt.qt5_build import Qt5Build
 from build_qt.config import Config
 
 def init_parser():
@@ -40,8 +40,12 @@ if __name__ == '__main__':
             # Qt OHOS补丁仓库克隆
             repo.clone_patch_repo()
 
-            # 应用补丁
-            repo.apply_patches()
+            # Qt5在init阶段应用补丁，Qt6在build阶段应用
+            if not config.is_qt6():
+                print('Qt5：在init阶段应用补丁')
+                repo.apply_patches()
+            else:
+                print('Qt6：补丁将在build阶段（主机编译后）应用')
         except QtRepoError as e:
             print('QtRepoError:', e)
             exit(1)
@@ -72,8 +76,8 @@ if __name__ == '__main__':
             print('检测到Qt6版本，使用Qt6Build类')
             qtBuild = Qt6Build(qt_dir, config)
         else:
-            print('检测到Qt5版本，使用QtBuild类')
-            qtBuild = QtBuild(qt_dir, config)
+            print('检测到Qt5版本，使用Qt5Build类')
+            qtBuild = Qt5Build(qt_dir, config)
         
         # 配置
         if args.exe_stage == 'clean':
