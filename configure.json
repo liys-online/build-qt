@@ -95,16 +95,29 @@
     },
     "v6.5.6-lts-lgpl": {
         "-skip": [
+            "qt3d",
+            "qtdoc",
             "qtpim", 
-            "qtconnectivity",
-            "qtvirtualkeyboard", 
-            "qtwebengine", 
-            "qtsystems", 
-            "qtlocation", 
-            "qtgamepad", 
+            "qtmqtt",
+            "qtopcua",
+            "qtlottie",
             "qtscript", 
+            "qtgamepad", 
             "qtsensors",
-            "qtwebview"
+            "qtwebview",
+            "qtsystems", 
+            "qtquick3d",
+            "qtlocation", 
+            "qtwebengine",
+            "qtmultimedia",
+            "qtshadertools",
+            "qtdeclarative",
+            "qtconnectivity",
+            "qtquicktimeline",
+            "qtquick3dphysics",
+            "qtvirtualkeyboard", 
+            "qtquickeffectmaker" ,
+            "qtquickeffectmaker"
         ]
     }
 }

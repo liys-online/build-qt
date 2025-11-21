@@ -17,24 +17,10 @@ import datetime
 
 
 class Qt6Build:
-    """Qt6构建管理类，处理Qt6的两阶段编译流程
-    
-    方案1：使用独立的源码树
-    - host_source_dir: 主机编译专用源码（qt6_host）
-    - cross_source_dir: 交叉编译专用源码（qt6）
-    - 完全隔离两个构建过程，避免CMake目标冲突
-    """
+    """Qt6构建管理类，处理Qt6的两阶段编译流程"""
     
     def __init__(self, source_dir: str, config: Config):
-        # 交叉编译使用主源码目录
-        self.cross_source_dir = source_dir
-        # 保持向后兼容
         self.source_dir = source_dir
-        
-        # 主机编译使用独立的源码目录（方案1：独立源码树）
-        work_dir = config.get_working_dir()
-        self.host_source_dir = os.path.join(work_dir, 'qt6_host')
-        
         self.config = config
         self.system = platform.system()
         self.supported_systems = ['Windows', 'Linux', 'Darwin']
@@ -59,6 +45,7 @@ class Qt6Build:
         
         # Qt6需要两个构建目录：主机编译和交叉编译
         # 将构建目录放在work目录下，避免补丁应用时被清理
+        work_dir = config.get_working_dir()
         self.host_build_dir = os.path.join(work_dir, 'qt6_build', 'host')
         self.cross_build_dir = os.path.join(work_dir, 'qt6_build', config.build_type())
         
@@ -115,7 +102,6 @@ class Qt6Build:
         self.setup_environment()
         
         configure_script = os.path.join(self.source_dir, 'configure.bat' if self.system == 'Windows' else 'configure')
-        # 添加-redo参数以清理CMakeCache.txt，确保能够重新配置
         cmd = [configure_script] + self.config.build_host_configure_options()
         
         print('主机编译配置命令：', ' '.join(cmd))
@@ -164,7 +150,6 @@ class Qt6Build:
         self.setup_environment()
         
         configure_script = os.path.join(self.source_dir, 'configure.bat' if self.system == 'Windows' else 'configure')
-        # 添加-redo参数以清理CMakeCache.txt，确保能够重新配置
         cmd = [configure_script] + self.config.build_cross_configure_options()
         
         # Qt6交叉编译通过CMake参数指定OpenSSL路径和强制构建工具
@@ -173,7 +158,7 @@ class Qt6Build:
             openssl_root = self.config.get_path('openssl')
             cmd.append('-DOPENSSL_ROOT_DIR={}'.format(openssl_root))
         # 交叉编译需要强制构建工具，因为交叉编译包需要提供给第三方使用
-        cmd.append('-DQT_FORCE_BUILD_TOOLS=1')
+        cmd.append('-DQT_FORCE_BUILD_TOOLS=ON')
         # Windows上使用Ninja生成器时，需要设置CMAKE_BUILD_WITH_INSTALL_RPATH避免RPATH重链接问题
         cmd.append('-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON')
         
@@ -308,7 +293,7 @@ class Qt6Build:
         from .qt_repo import QtRepo
         qt_repo = QtRepo(self.source_dir, self.config)
         try:
-            qt_repo.apply_patches()
+            # qt_repo.apply_patches()
             print('补丁应用成功')
         except Exception as e:
             print('警告: 补丁应用失败或已应用: {}'.format(e))
