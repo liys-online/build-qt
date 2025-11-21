@@ -26,7 +26,10 @@ if __name__ == '__main__':
     sys.stdout.reconfigure(line_buffering=True)
     args = init_parser()
     config = Config(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'configure.json'), args.use_github)
-    qt_dir = os.path.join(config.get_working_dir(), 'qt5')
+    
+    # 根据Qt版本选择目录名
+    qt_dir_name = 'qt6' if config.is_qt6() else 'qt5'
+    qt_dir = os.path.join(config.get_working_dir(), qt_dir_name)
 
     repo = QtRepo(qt_dir, config)
     if args.init:
@@ -62,8 +65,16 @@ if __name__ == '__main__':
         config.dev_env_check()
         if args.env_check:
             exit()
-        # Qt编译
-        qtBuild = QtBuild(qt_dir, config)
+        
+        # 根据Qt版本选择对应的构建类
+        if config.is_qt6():
+            from build_qt.qt6_build import Qt6Build
+            print('检测到Qt6版本，使用Qt6Build类')
+            qtBuild = Qt6Build(qt_dir, config)
+        else:
+            print('检测到Qt5版本，使用QtBuild类')
+            qtBuild = QtBuild(qt_dir, config)
+        
         # 配置
         if args.exe_stage == 'clean':
             qtBuild.clean()

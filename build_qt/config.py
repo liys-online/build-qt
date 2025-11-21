@@ -289,6 +289,11 @@ class Config:
         _qt_ohos_patch = self.get_repos().get('qt-ohos-patch')
         return _qt_ohos_patch.get('gh_url') if self.use_gh else _qt_ohos_patch.get('gc_url')
     
+    def is_qt6(self):
+        """判断当前是否为Qt6版本"""
+        tag = self.tag()
+        return tag.startswith('v6.')
+    
     def tag(self):
         return self.get_config_value('build_qt_tag')
 
@@ -305,6 +310,10 @@ class Config:
         return os.path.join(self.get_output_path(), 'Qt{}-ohos{}-{}'.format(self.qt_version(),
                                                                             self.ohos_version(),
                                                                             self.build_ohos_abi()))
+    
+    def build_host_prefix(self):
+        """Qt6主机编译的安装路径"""
+        return os.path.join(self.get_output_path(), 'Qt{}-host'.format(self.qt_version()))
 
     def build_ohos_abi(self):
         return self.get_config_value('build_ohos_abi')
@@ -384,4 +393,110 @@ class Config:
             result += ['-feature-{}'.format(feature)]
         if self.get_config_value('verbose'):
             result += ['-verbose']
+        return result
+    
+    def build_host_configure_options(self):
+        """Qt6主机编译的配置选项（不进行交叉编译）"""
+        options = self.config['qt-config']
+        result = []
+        
+        # 基本选项
+        if options['license'] in ['opensource', 'commercial']:
+            result.append('-{}'.format(options['license']))
+        if options['confirm-license']:
+            result.append('-confirm-license')
+        
+        # 主机平台
+        host_platform = 'win32-g++'
+        if platform.system() == 'Linux':
+            host_platform = 'linux-g++'
+        elif platform.system() == 'Darwin':
+            host_platform = 'macx-clang'
+        result += ['-platform', host_platform]
+        
+        # 构建类型和安装路径
+        result += ['-{}'.format(self.build_type())]
+        result += ['-prefix', self.build_host_prefix()]
+        
+        # nomake选项
+        for nomake in options['-nomake']:
+            result += ['-nomake', nomake]
+        
+        # skip选项
+        skips = self.config.get(self.tag(), {}).get('-skip', [])
+        for skip in skips:
+            result += ['-skip', skip]
+        
+        # verbose选项
+        if self.get_config_value('verbose'):
+            result += ['-verbose']
+        
+        return result
+    
+    def build_cross_configure_options(self):
+        """Qt6交叉编译的配置选项（用于OHOS目标平台）"""
+        options = self.config['qt-config']
+        result = []
+        
+        # 基本选项
+        if options['license'] in ['opensource', 'commercial']:
+            result.append('-{}'.format(options['license']))
+        if options['confirm-license']:
+            result.append('-confirm-license')
+        
+        # 主机平台
+        host_platform = 'win32-g++'
+        if platform.system() == 'Linux':
+            host_platform = 'linux-g++'
+        elif platform.system() == 'Darwin':
+            host_platform = 'macx-clang'
+        result += ['-platform', host_platform]
+        
+        # Qt6交叉编译需要-xplatform和OHOS SDK相关配置
+        result += ['-xplatform', 'ohos-clang']
+        result += ['-openharmony-sdk', self.ohos_sdk_path]
+        result += ['-openharmony-abis', self.build_ohos_abi()]
+        
+        # OpenGL设置
+        result += ['-opengl', options['-opengl']]
+        if options.get('-opengles3'):
+            result.append('-opengles3')
+        
+        # DBus设置
+        if options.get('-no-dbus'):
+            result.append('-no-dbus')
+        
+        # OpenSSL设置
+        if options.get('openssl-runtime'):
+            result.append('-openssl-runtime')
+        
+        # rpath设置
+        if options.get('-disable-rpath'):
+            result.append('-disable-rpath')
+        
+        # nomake选项
+        for nomake in options['-nomake']:
+            result += ['-nomake', nomake]
+        
+        # skip选项
+        skips = self.config.get(self.tag(), {}).get('-skip', [])
+        for skip in skips:
+            result += ['-skip', skip]
+        
+        # 构建类型和安装路径
+        result += ['-{}'.format(self.build_type())]
+        result += ['-prefix', self.build_prefix()]
+        
+        # 指定主机工具路径
+        result += ['-qt-host-path', self.build_host_prefix()]
+        
+        # 特性选项
+        features = self.get_config_value('features')
+        for feature in features:
+            result += ['-feature-{}'.format(feature)]
+        
+        # verbose选项
+        if self.get_config_value('verbose'):
+            result += ['-verbose']
+        
         return result
