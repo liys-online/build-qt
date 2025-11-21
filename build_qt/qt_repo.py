@@ -144,7 +144,7 @@ class QtRepo:
                 else:
                     raise QtRepoError('应用补丁 {} 失败'.format(patch_file))
         # 拷贝patch目录下的qtohextras到qt源码根目录
-        qtohextras_dir = os.path.join(patch_dir, 'qtohextras')
+        qtohextras_dir = patch_dir = os.path.join(self.patch_repo_path, 'patch', 'qtohextras')
         if os.path.isdir(qtohextras_dir):
             dest_dir = os.path.join(self.repo_path, 'qtohextras')
             if os.path.exists(dest_dir):
