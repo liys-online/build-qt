@@ -292,8 +292,8 @@ class Qt6Build:
     
     def build(self, jobs: int = 4):
         """构建阶段：先主机编译并安装，应用补丁，再交叉编译"""
-        # self.build_host(jobs)
-        # self.install_host()  # 主机编译后立即安装，确保-qt-host-path可用
+        self.build_host(jobs)
+        self.install_host()  # 主机编译后立即安装，确保-qt-host-path可用
         
         # Qt6主机编译后，先清理源码树，再应用补丁
         # 清理源码树中主机编译生成的所有文件
