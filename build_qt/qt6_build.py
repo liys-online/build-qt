@@ -104,6 +104,12 @@ class Qt6Build:
         configure_script = os.path.join(self.source_dir, 'configure.bat' if self.system == 'Windows' else 'configure')
         cmd = [configure_script] + self.config.build_host_configure_options()
         
+        # 添加 CMake 选项（如果配置中有定义）
+        cmake_options = self.config.build_host_cmake_options()
+        if cmake_options:
+            cmd.append('--')
+            cmd.extend(cmake_options)
+        
         print('主机编译配置命令：', ' '.join(cmd))
         result = subprocess.run(cmd, cwd=self.host_build_dir, check=True)
         
@@ -120,6 +126,8 @@ class Qt6Build:
         print('\n========== 开始Qt6主机编译 ==========')
         self.setup_environment()  # 确保环境变量正确设置
         
+        # Qt6 主机编译只需要构建 host_tools 目标
+        # build_cmd = [self.cmake_cmd, '--build', '.', '--target', 'host_tools', '--parallel', str(jobs)]
         build_cmd = [self.cmake_cmd, '--build', '.', '--parallel', str(jobs)]
         print('主机编译命令：', ' '.join(build_cmd))
         print('CMake路径: {}'.format(self.cmake_cmd))
@@ -134,12 +142,14 @@ class Qt6Build:
     def install_host(self):
         """安装Qt6主机编译结果"""
         print('\n========== 开始Qt6主机编译安装 ==========')
+        # 只安装 host_tools 目标的组件
+        # install_cmd = [self.cmake_cmd, '--install', '.', '--component', 'host_tools']
         install_cmd = [self.cmake_cmd, '--install', '.']
         print('主机编译安装命令:', ' '.join(install_cmd))
         result = subprocess.run(install_cmd, cwd=self.host_build_dir, check=True)
         
         if result.returncode == 0:
-            print('主机编译安装成功')
+            print('主机编译安装成功（host_tools组件）')
             print('主机编译安装目录: {}'.format(self.config.build_host_prefix()))
         else:
             raise RuntimeError('主机编译安装失败')
@@ -152,15 +162,17 @@ class Qt6Build:
         configure_script = os.path.join(self.source_dir, 'configure.bat' if self.system == 'Windows' else 'configure')
         cmd = [configure_script] + self.config.build_cross_configure_options()
         
-        # Qt6交叉编译通过CMake参数指定OpenSSL路径和强制构建工具
+        # Qt6交叉编译通过CMake参数配置（从 configure.json 中的 cmake-options 获取）
         cmd.append('--')
+        
+        # OpenSSL 配置
         if self.config.openssl_runtime():
             openssl_root = self.config.get_path('openssl')
             cmd.append('-DOPENSSL_ROOT_DIR={}'.format(openssl_root))
-        # 交叉编译需要强制构建工具，因为交叉编译包需要提供给第三方使用
-        cmd.append('-DQT_FORCE_BUILD_TOOLS=ON')
-        # Windows上使用Ninja生成器时，需要设置CMAKE_BUILD_WITH_INSTALL_RPATH避免RPATH重链接问题
-        cmd.append('-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON')
+        
+        # 从配置文件中获取 CMake 选项
+        cmake_options = self.config.build_cross_cmake_options()
+        cmd.extend(cmake_options)
         
         print('交叉编译配置命令：', ' '.join(cmd))
         result = subprocess.run(cmd, cwd=self.cross_build_dir, check=True)
@@ -293,7 +305,7 @@ class Qt6Build:
         from .qt_repo import QtRepo
         qt_repo = QtRepo(self.source_dir, self.config)
         try:
-            # qt_repo.apply_patches()
+            qt_repo.apply_patches()
             print('补丁应用成功')
         except Exception as e:
             print('警告: 补丁应用失败或已应用: {}'.format(e))

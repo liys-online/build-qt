@@ -328,7 +328,22 @@ class Config:
         return os.cpu_count()
 
     def openssl_runtime(self):
-        return self.config.get('qt-config').get('openssl-runtime', False)
+        """检查当前版本是否启用 OpenSSL 运行时支持"""
+        tag = self.tag()
+        
+        # 根据 Qt 版本判断从哪个配置中读取
+        if tag.startswith('v5.'):
+            # Qt5 从 qt5-config[tag] 读取
+            qt5_config = self.config.get('qt5-config', {})
+            tag_options = qt5_config.get(tag, {})
+            return tag_options.get('openssl-runtime', False)
+        elif tag.startswith('v6.'):
+            # Qt6 从 qt6-cross-config[tag] 读取（交叉编译才需要 OpenSSL）
+            qt6_cross_config = self.config.get('qt6-cross-config', {})
+            tag_options = qt6_cross_config.get(tag, {})
+            return tag_options.get('openssl-runtime', False)
+        
+        return False
 
     def get_repos(self):
         return self.config.get('repositories', {})
@@ -356,54 +371,96 @@ class Config:
             json.dump(obj, f, ensure_ascii=False, indent=4)
 
     def build_configure_options(self):
-        options = self.config['qt-config']
+        """Qt5 的配置选项（从 qt5-config[tag] 读取）"""
+        # 从 qt5-config 中获取当前版本的配置
+        qt5_config = self.config.get('qt5-config', {})
+        tag_options = qt5_config.get(self.tag(), {})
+        
+        if not tag_options:
+            raise ValueError(f'配置文件中未找到Qt5版本 {self.tag()} 的配置')
+        
         result = []
-        if options['license'] in ['opensource', 'commercial']:
-            result.append('-{}'.format(options['license']))
-        if options['confirm-license']:
+        
+        # 基本选项（从父级获取）
+        if qt5_config.get('license') in ['opensource', 'commercial']:
+            result.append('-{}'.format(qt5_config['license']))
+        if qt5_config.get('confirm-license'):
             result.append('-confirm-license')
+        
+        # 平台配置
         host_platform = 'win32-g++'
         if platform.system() == 'Linux':
             host_platform = 'linux-g++'
         elif platform.system() == 'Darwin':
             host_platform = 'macx-clang'
         result += ['-platform', host_platform]
-        result += ['-xplatform', options['-xplatform']]
-        result += ['-opengl', options['-opengl']]
-        if options['-opengles3']:
+        
+        # 交叉编译平台
+        if '-xplatform' in tag_options:
+            result += ['-xplatform', tag_options['-xplatform']]
+        
+        # OpenGL 配置
+        if '-opengl' in tag_options:
+            result += ['-opengl', tag_options['-opengl']]
+        if tag_options.get('-opengles3'):
             result.append('-opengles3')
-        if options['-no-dbus']:
+        
+        # DBus 配置
+        if tag_options.get('-no-dbus'):
             result.append('-no-dbus')
-        if options['openssl-runtime']:
+        
+        # OpenSSL 配置
+        if tag_options.get('openssl-runtime'):
             result.append('-openssl-runtime')
             result.append('OPENSSL_INCDIR={}'.format(os.path.join(self.openssl_path, 'include')))
-        if options['-disable-rpath']:
+        
+        # rpath 配置
+        if tag_options.get('-disable-rpath'):
             result.append('-disable-rpath')
-        for nomake in options['-nomake']:
+        
+        # nomake 选项
+        for nomake in tag_options.get('-nomake', []):
             result += ['-nomake', nomake]
-        skips = self.config[self.tag()]['-skip']
+        
+        # skip 选项
+        skips = tag_options.get('-skip', [])
         for skip in skips:
             result += ['-skip', skip]
+        
+        # 构建目录和类型
         result += ['-prefix', self.build_prefix()]
         result += ['-{}'.format(self.build_type())]
+        
+        # Qt5 特定选项
         result += ['-device-option', 'OHOS_ARCH={}'.format(self.build_ohos_abi())]
         result += ['-make-tool', '{} -j{}'.format(self.make_tools, self.build_jobs())]
+        
+        # 特性选项
         features = self.get_config_value('features')
         for feature in features:
             result += ['-feature-{}'.format(feature)]
+        
+        # verbose 选项
         if self.get_config_value('verbose'):
             result += ['-verbose']
+        
         return result
     
     def build_host_configure_options(self):
-        """Qt6主机编译的配置选项（不进行交叉编译）"""
-        options = self.config['qt-config']
+        """Qt6 主机编译的配置选项（从 qt6-host-config[tag] 读取）"""
+        # 从 qt6-host-config 中获取当前版本的配置
+        qt6_host_config = self.config.get('qt6-host-config', {})
+        tag_options = qt6_host_config.get(self.tag(), {})
+        
+        if not tag_options:
+            raise ValueError(f'配置文件中未找到Qt6主机版本 {self.tag()} 的配置')
+        
         result = []
         
-        # 基本选项
-        if options['license'] in ['opensource', 'commercial']:
-            result.append('-{}'.format(options['license']))
-        if options['confirm-license']:
+        # 基本选项（从父级获取）
+        if qt6_host_config.get('license') in ['opensource', 'commercial']:
+            result.append('-{}'.format(qt6_host_config['license']))
+        if qt6_host_config.get('confirm-license'):
             result.append('-confirm-license')
         
         # 主机平台
@@ -418,12 +475,16 @@ class Config:
         result += ['-{}'.format(self.build_type())]
         result += ['-prefix', self.build_host_prefix()]
         
+        # Qt6 主机编译：开发者模式（如果配置中指定）
+        if tag_options.get('-developer-build'):
+            result.append('-developer-build')
+        
         # nomake选项
-        for nomake in options['-nomake']:
+        for nomake in tag_options.get('-nomake', []):
             result += ['-nomake', nomake]
         
         # skip选项
-        skips = self.config.get(self.tag(), {}).get('-skip', [])
+        skips = tag_options.get('-skip', [])
         for skip in skips:
             result += ['-skip', skip]
         
@@ -435,43 +496,50 @@ class Config:
     
     def build_cross_configure_options(self):
         """Qt6交叉编译的配置选项（用于OHOS目标平台）"""
-        options = self.config['qt-config']
+        # 从 qt6-cross-config 中获取当前版本的配置
+        qt6_cross_config = self.config.get('qt6-cross-config', {})
+        tag_options = qt6_cross_config.get(self.tag(), {})
+        
+        if not tag_options:
+            raise ValueError(f'配置文件中未找到Qt6交叉编译版本 {self.tag()} 的配置')
+        
         result = []
         
-        # 基本选项
-        if options['license'] in ['opensource', 'commercial']:
-            result.append('-{}'.format(options['license']))
-        if options['confirm-license']:
+        # 基本选项（从父级获取）
+        if qt6_cross_config.get('license') in ['opensource', 'commercial']:
+            result.append('-{}'.format(qt6_cross_config['license']))
+        if qt6_cross_config.get('confirm-license'):
             result.append('-confirm-license')
         
         # Qt6交叉编译不需要-platform参数，只需要-xplatform和OHOS SDK相关配置
-        result += ['-xplatform', 'ohos-clang']
+        result += ['-xplatform', tag_options.get('-xplatform', 'ohos-clang')]
         result += ['-openharmony-sdk', self.ohos_sdk_path]
         result += ['-openharmony-abis', self.build_ohos_abi()]
         
         # OpenGL设置
-        result += ['-opengl', options['-opengl']]
-        if options.get('-opengles3'):
+        if '-opengl' in tag_options:
+            result += ['-opengl', tag_options['-opengl']]
+        if tag_options.get('-opengles3'):
             result.append('-opengles3')
         
         # DBus设置
-        if options.get('-no-dbus'):
+        if tag_options.get('-no-dbus'):
             result.append('-no-dbus')
         
         # OpenSSL设置
-        if options.get('openssl-runtime'):
+        if tag_options.get('openssl-runtime'):
             result.append('-openssl-runtime')
         
         # rpath设置
-        if options.get('-disable-rpath'):
+        if tag_options.get('-disable-rpath'):
             result.append('-disable-rpath')
         
         # nomake选项
-        for nomake in options['-nomake']:
+        for nomake in tag_options.get('-nomake', []):
             result += ['-nomake', nomake]
         
         # skip选项
-        skips = self.config.get(self.tag(), {}).get('-skip', [])
+        skips = tag_options.get('-skip', [])
         for skip in skips:
             result += ['-skip', skip]
         
@@ -490,5 +558,45 @@ class Config:
         # verbose选项
         if self.get_config_value('verbose'):
             result += ['-verbose']
+        
+        return result
+    
+    def build_host_cmake_options(self):
+        """Qt6主机编译的CMake选项（从 qt6-host-config[tag]['cmake-options'] 读取）"""
+        # 从 qt6-host-config 中获取当前版本的 CMake 配置
+        qt6_host_config = self.config.get('qt6-host-config', {})
+        tag_options = qt6_host_config.get(self.tag(), {})
+        cmake_options = tag_options.get('cmake-options', {})
+        
+        result = []
+        
+        # 将 cmake-options 字典转换为 CMake 命令行参数
+        for key, value in cmake_options.items():
+            if isinstance(value, bool):
+                # 布尔值转换为 ON/OFF
+                result.append(f'-D{key}={"ON" if value else "OFF"}')
+            elif isinstance(value, (int, float, str)):
+                # 其他类型直接转换为字符串
+                result.append(f'-D{key}={value}')
+        
+        return result
+    
+    def build_cross_cmake_options(self):
+        """Qt6交叉编译的CMake选项（从 qt6-cross-config[tag]['cmake-options'] 读取）"""
+        # 从 qt6-cross-config 中获取当前版本的 CMake 配置
+        qt6_cross_config = self.config.get('qt6-cross-config', {})
+        tag_options = qt6_cross_config.get(self.tag(), {})
+        cmake_options = tag_options.get('cmake-options', {})
+        
+        result = []
+        
+        # 将 cmake-options 字典转换为 CMake 命令行参数
+        for key, value in cmake_options.items():
+            if isinstance(value, bool):
+                # 布尔值转换为 ON/OFF
+                result.append(f'-D{key}={"ON" if value else "OFF"}')
+            elif isinstance(value, (int, float, str)):
+                # 其他类型直接转换为字符串
+                result.append(f'-D{key}={value}')
         
         return result
