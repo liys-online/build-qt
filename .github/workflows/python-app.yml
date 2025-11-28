@@ -9,14 +9,14 @@ on:
       qt_version:
         description: '选择Qt版本'
         required: true
-        default: 5.15.12
+        default: 5.15.17
         type: choice
-        options: [5.15.12, 5.15.17]
+        options: [5.15.17, 6.5.6]
 
       ohos_version:
         description: '选择OpenHarmony版本'
         required: true
-        default: '17'
+        default: '18'
         type: choice
         options: ['15', '16', '17', '18', '19', '20']
 
