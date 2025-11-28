@@ -55,7 +55,7 @@ class Config:
                     'message': '请配置perl路径（默认则自动下载）：',
                     'default': lambda the_answers: os.path.join(the_answers['working_dir'], 'perl')
                                 if 'working_dir' in the_answers else self.get_build_tool_path('perl'),
-                    'when': platform.system() != 'Windows'
+                    'when': lambda _: platform.system() == 'Windows'
                 },
                 {
                     'type': 'path',
@@ -63,7 +63,7 @@ class Config:
                     'message': '请配置mingw路径（默认则自动下载）：',
                     'default': lambda the_answers: os.path.join(the_answers['working_dir'], 'mingw')
                                 if 'working_dir' in the_answers else self.get_build_tool_path('mingw'),
-                    'when': platform.system() != 'Windows'
+                    'when': lambda _: platform.system() == 'Windows'
                 },
                 {
                     'type': 'select',
