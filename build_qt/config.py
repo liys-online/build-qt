@@ -40,6 +40,7 @@ class Config:
 
     def init_user_config(self):
         user_config_path = os.path.join(self.root_path, 'configure.json.user')
+        system_os = platform.system()
         if not os.path.isfile(user_config_path):
             questionary.print('用户配置文件 {} 不存在，开始配置。'.format(user_config_path), style='bold fg:ansiyellow')
             answers = questionary.prompt([
@@ -55,7 +56,7 @@ class Config:
                     'message': '请配置perl路径（默认则自动下载）：',
                     'default': lambda the_answers: os.path.join(the_answers['working_dir'], 'perl')
                                 if 'working_dir' in the_answers else self.get_build_tool_path('perl'),
-                    'when': lambda _: platform.system() == 'Windows'
+                    'when': lambda _: system_os == 'Windows'
                 },
                 {
                     'type': 'path',
@@ -63,7 +64,7 @@ class Config:
                     'message': '请配置mingw路径（默认则自动下载）：',
                     'default': lambda the_answers: os.path.join(the_answers['working_dir'], 'mingw')
                                 if 'working_dir' in the_answers else self.get_build_tool_path('mingw'),
-                    'when': lambda _: platform.system() == 'Windows'
+                    'when': lambda _: system_os == 'Windows'
                 },
                 {
                     'type': 'select',
