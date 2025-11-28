@@ -25,7 +25,21 @@ if __name__ == '__main__':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
     sys.stdout.reconfigure(line_buffering=True)
     args = init_parser()
-    config = Config(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'configure.json'), args.use_github)
+    
+    # 获取配置文件路径
+    # 优先使用当前目录的配置文件，如果不存在则使用包内的默认配置
+    config_path = os.path.join(os.getcwd(), 'configure.json')
+    if not os.path.exists(config_path):
+        # 使用包内的默认配置文件
+        package_dir = os.path.dirname(os.path.abspath(__file__))
+        config_path = os.path.join(package_dir, 'configure.json')
+        if not os.path.exists(config_path):
+            print(f'错误: 找不到配置文件 configure.json')
+            print(f'已尝试: {os.path.join(os.getcwd(), "configure.json")}')
+            print(f'已尝试: {config_path}')
+            exit(1)
+
+    config = Config(config_path, args.use_github)
     
     # 根据Qt版本选择目录名
     qt_dir_name = 'qt6' if config.is_qt6() else 'qt5'
