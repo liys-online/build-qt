@@ -38,6 +38,7 @@
         }
     },
     "supported-qt-tags": [
+        "v5.15.12-lts-lgpl",
         "v5.15.17-lts-lgpl",
         "v6.5.6-lts-lgpl"
     ],
