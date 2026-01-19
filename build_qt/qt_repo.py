@@ -205,20 +205,22 @@ class QtRepo:
                 raise QtRepoError('补丁基本目录不存在: {}'.format(patch_base))
 
         # 拷贝 qtohextras 模块到 Qt 源码目录（Qt5 需要）
-        qtohextras_src = os.path.join(self.patch_repo_path, 'patch', 'qtohextras')
-        if os.path.isdir(qtohextras_src):
-            qtohextras_dest = os.path.join(self.repo_path, 'qtohextras')
-            if os.path.exists(qtohextras_dest):
-                print('删除已存在的 qtohextras 目录')
-                shutil.rmtree(qtohextras_dest)
-            print('拷贝 qtohextras 到: {}'.format(qtohextras_dest))
-            shutil.copytree(qtohextras_src, qtohextras_dest)
-            
-            # 创建 .git 文件（Qt5 子模块依赖检查需要）
-            qtohextras_git = os.path.join(qtohextras_dest, '.git')
-            with open(qtohextras_git, 'w') as f:
-                f.write('gitdir: ../.git/modules/qtohextras\n')
-            print('创建 .git 文件: {}'.format(qtohextras_git))
+        extras_modules = ['qtohextras', 'qtpdf']
+        for module in extras_modules:
+            module_src = os.path.join(self.patch_repo_path, 'patch', module)
+            if os.path.isdir(module_src):
+                module_dest = os.path.join(self.repo_path, module)
+                if os.path.exists(module_dest):
+                    print('删除已存在的 {} 目录'.format(module))
+                    shutil.rmtree(module_dest)
+                print('拷贝 {} 到: {}'.format(module, module_dest))
+                shutil.copytree(module_src, module_dest)
+                
+                # 创建 .git 文件（Qt5 子模块依赖检查需要）
+                module_git = os.path.join(module_dest, '.git')
+                with open(module_git, 'w') as f:
+                    f.write('gitdir: ../.git/modules/{}\n'.format(module))
+                print('创建 .git 文件: {}'.format(module_git))
 
         patch_files = [f for f in os.listdir(patch_dir) if f.endswith('.patch')]
         if not patch_files:
